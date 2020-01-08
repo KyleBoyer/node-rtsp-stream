@@ -46,7 +46,8 @@ Mpeg1Muxer = function(options) {
     this.stream.on('exit', (code, signal) => {
       if(this.reconnect){
         this.inputStreamStarted = false
-        startStream();
+        console.log('RTSP stream exited, reconnecting...')
+        setTimeout(startStream, 100);
       } else if (code === 1) {
         console.error('RTSP stream exited with error')
         this.exitCode = 1
