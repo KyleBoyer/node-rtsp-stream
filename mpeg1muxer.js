@@ -10,6 +10,7 @@ Mpeg1Muxer = function(options) {
   var key
   this.url = options.url
   this.ffmpegOptions = options.ffmpegOptions
+  this.reconnect = options.reconnect
   this.exitCode = undefined
   this.additionalFlags = []
   if (this.ffmpegOptions) {
@@ -31,23 +32,29 @@ Mpeg1Muxer = function(options) {
     ...this.additionalFlags,
     '-'
   ]
-  this.stream = child_process.spawn("ffmpeg", this.spawnOptions, {
-    detached: false
-  })
-  this.inputStreamStarted = true
-  this.stream.stdout.on('data', (data) => {
-    return this.emit('mpeg1data', data)
-  })
-  this.stream.stderr.on('data', (data) => {
-    return this.emit('ffmpegStderr', data)
-  })
-  this.stream.on('exit', (code, signal) => {
-    if (code === 1) {
-      console.error('RTSP stream exited with error')
-      this.exitCode = 1
-      return this.emit('exitWithError')
-    }
-  })
+  startStream = () => {
+    this.stream = child_process.spawn("ffmpeg", this.spawnOptions, {
+      detached: false
+    })
+    this.inputStreamStarted = true
+    this.stream.stdout.on('data', (data) => {
+      return this.emit('mpeg1data', data)
+    })
+    this.stream.stderr.on('data', (data) => {
+      return this.emit('ffmpegStderr', data)
+    })
+    this.stream.on('exit', (code, signal) => {
+      if (code === 1) {
+        console.error('RTSP stream exited with error')
+        this.exitCode = 1
+        return this.emit('exitWithError')
+      }else if(this.reconnect){
+        this.inputStreamStarted = false
+        startStream();
+      }
+    })
+  }
+  startStream();
   return this
 }
 

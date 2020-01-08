@@ -11,8 +11,8 @@
       var videoStream;
       videoStream = new VideoStream({
         name: 'wowza',
-        streamUrl: 'rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov',
-        wsPort: 9999,
+        streamUrl: 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov',
+        wsOptions: { port: 9999},
         width: 240,
         height: 160,
         ffmpegOptions: {

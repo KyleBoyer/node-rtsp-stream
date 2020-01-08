@@ -37,7 +37,8 @@ VideoStream.prototype.startMpeg1Stream = function() {
   var gettingInputData, gettingOutputData, inputData, outputData
   this.mpeg1Muxer = new Mpeg1Muxer({
     ffmpegOptions: this.options.ffmpegOptions,
-    url: this.streamUrl
+    url: this.streamUrl,
+    reconnect: this.options.reconnect
   })
   this.stream = this.mpeg1Muxer.stream
   if (this.inputStreamStarted) {
@@ -92,8 +93,7 @@ VideoStream.prototype.pipeStreamToSocketServer = function() {
     return this.onSocketConnect(socket, request)
   })
   this.wsServer.broadcast = function(data, opts) {
-    var results
-    results = []
+    var results = []
     for (let client of this.clients) {
       if (client.readyState === 1) {
         results.push(client.send(data, opts))
@@ -112,7 +112,7 @@ VideoStream.prototype.onSocketConnect = function(socket, request) {
   var streamHeader
   // Send magic bytes and video size to the newly connected socket
   // struct { char magic[4]; unsigned short width, height;}
-  streamHeader = new Buffer(8)
+  streamHeader = Buffer.alloc(8)
   streamHeader.write(STREAM_MAGIC_BYTES)
   streamHeader.writeUInt16BE(this.width, 4)
   streamHeader.writeUInt16BE(this.height, 6)
