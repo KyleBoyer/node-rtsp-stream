@@ -44,13 +44,13 @@ Mpeg1Muxer = function(options) {
       return this.emit('ffmpegStderr', data)
     })
     this.stream.on('exit', (code, signal) => {
-      if (code === 1) {
+      if(this.reconnect){
+        this.inputStreamStarted = false
+        startStream();
+      } else if (code === 1) {
         console.error('RTSP stream exited with error')
         this.exitCode = 1
         return this.emit('exitWithError')
-      }else if(this.reconnect){
-        this.inputStreamStarted = false
-        startStream();
       }
     })
   }
