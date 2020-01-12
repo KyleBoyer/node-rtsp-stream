@@ -108,7 +108,7 @@ VideoStream.prototype.pipeStreamToSocketServer = function() {
     }
     return results
   }
-  setInterval(function ping() {
+  setInterval(() => {
     this.wsServer.clients.forEach(function each(ws) {
       if (ws.isAlive === false) return ws.terminate();
       ws.isAlive = false;
