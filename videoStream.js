@@ -89,8 +89,12 @@ VideoStream.prototype.startMpeg1Stream = function() {
 }
 
 VideoStream.prototype.pipeStreamToSocketServer = function() {
-  this.wsServer = new ws.Server(this.wsOptions)
+  this.wsServer = new ws.Server(this.wsOptions);
   this.wsServer.on("connection", (socket, request) => {
+    socket.isAlive = true;
+    socket.on('pong', function heartbeat() {
+      this.isAlive = true;
+    });
     return this.onSocketConnect(socket, request)
   })
   this.wsServer.broadcast = function(data, opts) {
@@ -104,6 +108,13 @@ VideoStream.prototype.pipeStreamToSocketServer = function() {
     }
     return results
   }
+  setInterval(function ping() {
+    this.wsServer.clients.forEach(function each(ws) {
+      if (ws.isAlive === false) return ws.terminate();
+      ws.isAlive = false;
+      ws.ping(noop);
+    });
+  }, 5000);
   return this.on('camdata', (data) => {
     return this.wsServer.broadcast(data)
   })
