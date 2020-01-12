@@ -112,7 +112,7 @@ VideoStream.prototype.pipeStreamToSocketServer = function() {
     this.wsServer.clients.forEach(function each(ws) {
       if (ws.isAlive === false) return ws.terminate();
       ws.isAlive = false;
-      ws.ping(noop);
+      ws.ping(function(){});
     });
   }, 5000);
   return this.on('camdata', (data) => {
