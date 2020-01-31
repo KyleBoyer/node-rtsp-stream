@@ -11,6 +11,7 @@ Mpeg1Muxer = function(options) {
   this.url = options.url
   this.ffmpegOptions = options.ffmpegOptions
   this.reconnect = options.reconnect
+  this.reconnectInt = options.reconnectInterval
   this.reconnectTimeout = options.reconnectTimeout || 100
   this.exitCode = undefined
   this.additionalFlags = []
@@ -37,6 +38,7 @@ Mpeg1Muxer = function(options) {
     this.stream = child_process.spawn("ffmpeg", this.spawnOptions, {
       detached: false
     })
+    this.reconnecting = false
     this.inputStreamStarted = true
     this.stream.stdout.on('data', (data) => {
       return this.emit('mpeg1data', data)
@@ -45,8 +47,8 @@ Mpeg1Muxer = function(options) {
       return this.emit('ffmpegStderr', data)
     })
     this.stream.on('exit', (code, signal) => {
-      if(this.reconnect){
-        this.inputStreamStarted = false
+      this.inputStreamStarted = false
+      if(this.reconnect || this.reconnecting){
         console.log('RTSP stream exited, reconnecting...')
         setTimeout(startStream, this.reconnectTimeout);
       } else if (code === 1) {
@@ -55,6 +57,12 @@ Mpeg1Muxer = function(options) {
         return this.emit('exitWithError')
       }
     })
+    if(this.reconnectInt && this.reconnectInt > 1000){
+      setInterval(() => {
+        this.reconnecting = true;
+        this.stream.kill();
+      }, this.reconnectInt);
+    }
   }
   startStream();
   return this
