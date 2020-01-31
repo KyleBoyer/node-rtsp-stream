@@ -38,7 +38,6 @@ Mpeg1Muxer = function(options) {
     this.stream = child_process.spawn("ffmpeg", this.spawnOptions, {
       detached: false
     })
-    this.reconnecting = false
     this.inputStreamStarted = true
     this.stream.stdout.on('data', (data) => {
       return this.emit('mpeg1data', data)
@@ -57,12 +56,14 @@ Mpeg1Muxer = function(options) {
         return this.emit('exitWithError')
       }
     })
-    if(this.reconnectInt && this.reconnectInt > 1000){
+    if(!this.reconnecting && this.reconnectInt && this.reconnectInt > 1000){
       setInterval(() => {
         this.reconnecting = true;
+        console.log('RTSP stream is currently reconnecting according to the reconnect interval option...')
         this.stream.kill();
       }, this.reconnectInt);
     }
+    this.reconnecting = false
   }
   startStream();
   return this
